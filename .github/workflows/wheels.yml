@@ -79,10 +79,10 @@ jobs:
       - name: Install wheel and test
         run: |
           python -VV
-          # Avoid building SciPy from source in CI.
+          # Intel macOS also needs binary Numba/llvmlite releases.
           wheel=$(ls artifact/sgkit-*.whl)
           uv venv --python "${{ matrix.python-version }}"
-          uv pip install --python .venv --only-binary scipy "${wheel}"
+          uv pip install --python .venv --only-binary "${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-latest' && 'scipy,numba,llvmlite' || 'scipy' }}" "${wheel}"
           uv run --no-sync python sgkit-copy/.github/scripts/test_sgkit.py
 
   windows-test:
