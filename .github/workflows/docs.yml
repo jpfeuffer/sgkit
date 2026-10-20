@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - jpfeuffer-sgkit-plink-fork-ci
 
 jobs:
   build:
@@ -34,6 +35,7 @@ jobs:
       run: |
         make -C docs html SPHINXOPTS="-W --keep-going -n"
     - name: Commit documentation changes to gh-pages branch
+      if: github.repository == 'sgkit-dev/sgkit'
       run: |
         git clone https://github.com/sgkit-dev/sgkit.git --branch gh-pages --single-branch gh-pages
         mkdir -p gh-pages/latest
@@ -44,6 +46,7 @@ jobs:
         git add .
         git commit -m "Update latest documentation" -a || true # Ignore error if no changes present
     - name: Push changes
+      if: github.repository == 'sgkit-dev/sgkit'
       uses: ad-m/github-push-action@master
       with:
         branch: gh-pages
