@@ -51,11 +51,11 @@ jobs:
     if: github.repository_owner == 'sgkit-dev' || (github.repository == 'jpfeuffer/sgkit' && github.ref == 'refs/heads/jpfeuffer-sgkit-plink-fork-ci' && github.event_name == 'push')
     needs: ['build']
     strategy:
+      fail-fast: ${{ github.repository != 'jpfeuffer/sgkit' }}
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: ${{ fromJSON(github.repository == 'jpfeuffer/sgkit' && '["ubuntu-latest", "macos-15", "macos-15-intel"]' || '["ubuntu-latest", "macos-latest"]') }}
         python-version: ["3.11", "3.12"]
-    # Avoid exhausted hosted ARM capacity only for this fork's CI.
-    runs-on: ${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-latest' && 'macos-15-intel' || matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       # checkout repo to subdirectory to get access to scripts
       - uses: actions/checkout@v7
@@ -82,8 +82,14 @@ jobs:
           # Intel macOS also needs binary Numba/llvmlite releases.
           wheel=$(ls artifact/sgkit-*.whl)
           uv venv --python "${{ matrix.python-version }}"
-          uv pip install --python .venv --only-binary "${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-latest' && 'scipy,numba,llvmlite' || 'scipy' }}" "${wheel}"
+          uv pip install --python .venv --only-binary "${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-15-intel' && 'scipy,numba,llvmlite' || 'scipy' }}" "${wheel}"
           uv run --no-sync python sgkit-copy/.github/scripts/test_sgkit.py
+      - name: Verify macOS ARM architecture
+        if: matrix.os == 'macos-15'
+        run: |
+          uname -a
+          test "$(uname -m)" = arm64
+          uv run --no-sync python -c "import platform, sys; print(sys.version); print(platform.platform()); print(platform.machine()); assert platform.machine() == 'arm64'"
 
   windows-test:
     if: github.repository_owner == 'sgkit-dev' || (github.repository == 'jpfeuffer/sgkit' && github.ref == 'refs/heads/jpfeuffer-sgkit-plink-fork-ci' && github.event_name == 'push')
