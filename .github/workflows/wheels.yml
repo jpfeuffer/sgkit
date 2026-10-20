@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: ${{ github.repository != 'jpfeuffer/sgkit' }}
       matrix:
-        os: ${{ fromJSON(github.repository == 'jpfeuffer/sgkit' && '["ubuntu-latest", "macos-15", "macos-15-intel"]' || '["ubuntu-latest", "macos-latest"]') }}
+        os: ${{ fromJSON(github.repository == 'jpfeuffer/sgkit' && '["ubuntu-latest", "macos-14", "macos-15-intel"]' || '["ubuntu-latest", "macos-latest"]') }}
         python-version: ["3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -85,7 +85,7 @@ jobs:
           uv pip install --python .venv --only-binary "${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-15-intel' && 'scipy,numba,llvmlite' || 'scipy' }}" "${wheel}"
           uv run --no-sync python sgkit-copy/.github/scripts/test_sgkit.py
       - name: Verify macOS ARM architecture
-        if: matrix.os == 'macos-15'
+        if: matrix.os == 'macos-14'
         run: |
           uname -a
           test "$(uname -m)" = arm64
