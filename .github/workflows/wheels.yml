@@ -54,7 +54,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ["3.11", "3.12"]
-    runs-on: ${{ matrix.os }}
+    # Avoid exhausted hosted ARM capacity only for this fork's CI.
+    runs-on: ${{ github.repository == 'jpfeuffer/sgkit' && matrix.os == 'macos-latest' && 'macos-15-intel' || matrix.os }}
     steps:
       # checkout repo to subdirectory to get access to scripts
       - uses: actions/checkout@v7
